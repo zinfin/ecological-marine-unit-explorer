@@ -46,11 +46,13 @@ import java.util.Calendar;
  *
  */
 
-public class MapFragment extends Fragment {
+public class MapFragment extends Fragment implements MapContract.View {
 
   private GraphicsOverlay mGraphicOverlay;
 
   private MapView mMapView;
+
+  private MapContract.Presenter mPresenter;
 
   public MapFragment(){}
 
@@ -93,7 +95,8 @@ public class MapFragment extends Fragment {
 
     mMapView.setMap(map);
 
-    // Add layers that need to be visible in the map
+    // Create and add layers that need to be visible in the map
+
     // EMU OCean Surface
     ArcGISTiledLayer tiledLayerBaseMap = new ArcGISTiledLayer(getString(R.string.emu_ocean_surface_layer));
     map.getOperationalLayers().add(tiledLayerBaseMap);
@@ -105,26 +108,46 @@ public class MapFragment extends Fragment {
     mMapView.addDrawStatusChangedListener(new DrawStatusChangedListener() {
       @Override public void drawStatusChanged(DrawStatusChangedEvent drawStatusChangedEvent) {
         if (drawStatusChangedEvent.getDrawStatus() == DrawStatus.COMPLETED) {
+          // Stop listening to any more draw status changes
           mMapView.removeDrawStatusChangedListener(this);
-          progressDialog.dismiss();
+          // Start listening to touch interactions on the map
           mMapView.setOnTouchListener(mapTouchListener);
+          progressDialog.dismiss();
         }
       }
     });
   }
 
+  /**
+   * Override the application label used for the toolbar title
+   */
   private void setUpToolbar() {
     final Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
     ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
     ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Explore An Ocean Location");
   }
 
+  @Override
+  public final void onResume(){
+    super.onResume();
+    mMapView.resume();
+  }
+
+  @Override
+  public final void onPause() {
+    super.onPause();
+    mMapView.pause();
+  }
   /**
    * Obtain the geo location for a given point
    * on the screen
    */
-  private Point getScreenToLocation(android.graphics.Point mapPoint){
+  public Point getScreenToLocation(android.graphics.Point mapPoint){
     return mMapView.screenToLocation(mapPoint);
+  }
+
+  @Override public void setPresenter(MapContract.Presenter presenter) {
+      mPresenter = presenter;
   }
 
   private class MapTouchListener extends DefaultMapViewOnTouchListener {

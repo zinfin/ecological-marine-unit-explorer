@@ -29,7 +29,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import com.esri.android.ecologicalmarineunitexplorer.R;
-import util.ActivityUtils;
+import com.esri.android.ecologicalmarineunitexplorer.util.ActivityUtils;
 
 public class MapActivity extends AppCompatActivity {
 
