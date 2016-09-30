@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Ecological Marine Unit Explorer</string>
+    <string name="emu_ocean_surface_layer">
+        http://esri.maps.arcgis.com/home/item.html?id=d2db1dbd6d2742a38fe69506029b83ac
+    </string>
+    <string name="toolbar_title">Explore An Ocean Location</string>
+</resources>
