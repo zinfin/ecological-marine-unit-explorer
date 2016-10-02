@@ -33,6 +33,8 @@ import com.esri.android.ecologicalmarineunitexplorer.util.ActivityUtils;
 
 public class MapActivity extends AppCompatActivity {
 
+  private MapPresenter mMapPresenter;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -54,5 +56,6 @@ public class MapActivity extends AppCompatActivity {
       ActivityUtils.addFragmentToActivity(
           getSupportFragmentManager(), mapFragment, R.id.fragment_container, "map fragment");
     }
+    mMapPresenter = new MapPresenter(mapFragment);
   }
 }

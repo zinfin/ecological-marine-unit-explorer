@@ -25,15 +25,41 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
  *
  */
 
-import com.esri.arcgisruntime.geometry.Envelope;
-import com.esri.arcgisruntime.geometry.Point;
+import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import com.esri.android.ecologicalmarineunitexplorer.data.DataManager;
+import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
+import com.esri.arcgisruntime.geometry.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class MapPresenter implements MapContract.Presenter {
-  @Override public void start() {
+
+  private  MapContract.View mMapView;
+  private DataManager mDataManager;
+
+  public MapPresenter(@NonNull final MapContract.View mapView ){
+    mMapView = checkNotNull(mapView, "map view cannot be null");
+    mMapView.setPresenter(this);
 
   }
+  @Override public void start() {
+    checkNotNull(mMapView.getContext().getApplicationContext());
+    mDataManager = new DataManager(mMapView.getContext().getApplicationContext());
+  }
 
-  @Override public Envelope getBufferForPoint(Point point, double distance) {
-    return null;
+  @Override public void setSelectedPoint(Point point) {
+    Log.i("MapPresenter", "Selcted point coordinates = x= " + point.getX() + " y= " + point.getY());
+    Polygon polygon = getBufferPolygonForPoint(point, 8000);
+    PolygonBuilder builder = new PolygonBuilder(polygon);
+    Envelope envelope = builder.getExtent();
+    mMapView.showSelectedRegion(polygon);
+    mDataManager.queryForEmuAtLocation(envelope);
+  }
+
+  @Override public Polygon getBufferPolygonForPoint(Point point, double distance) {
+    return GeometryEngine.buffer(point, distance);
+
   }
 }

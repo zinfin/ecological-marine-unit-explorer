@@ -111,6 +111,9 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
     // Map view present?
     assertTrue(solo.waitForView(getActivity().findViewById(R.id.map)));
 
+    // Take a picture and store it
+
+
   }
 
   /**
@@ -120,6 +123,15 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
   public void testClickOnOcean(){
 
   }
+
+  /**
+   * Verify that clicking on a land
+   * location shows a toast message
+   */
+  public void testClickOnLand(){
+
+  }
+
   private void requestWritePermission() {
 
     if (ContextCompat.checkSelfPermission(getActivity(),

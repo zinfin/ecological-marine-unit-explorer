@@ -2,6 +2,7 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,10 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.esri.android.ecologicalmarineunitexplorer.R;
 import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.Polygon;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.*;
+import com.esri.arcgisruntime.symbology.LineSymbol;
+import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 
 import java.util.Calendar;
 
@@ -66,6 +71,7 @@ public class MapFragment extends Fragment implements MapContract.View {
     super.onCreate(savedInstance);
     // retain this fragment
     setRetainInstance(true);
+    mPresenter.start();
   }
 
   @Override
@@ -96,8 +102,10 @@ public class MapFragment extends Fragment implements MapContract.View {
     mMapView.setMap(map);
 
     // Create and add layers that need to be visible in the map
+    mGraphicOverlay  = new GraphicsOverlay();
+    mMapView.getGraphicsOverlays().add(mGraphicOverlay);
 
-    // EMU OCean Surface
+    // EMU Ocean Surface
     ArcGISTiledLayer tiledLayerBaseMap = new ArcGISTiledLayer(getString(R.string.emu_ocean_surface_layer));
     map.getOperationalLayers().add(tiledLayerBaseMap);
 
@@ -149,6 +157,12 @@ public class MapFragment extends Fragment implements MapContract.View {
   @Override public void setPresenter(MapContract.Presenter presenter) {
       mPresenter = presenter;
   }
+  public void showSelectedRegion(Polygon polygon){
+    SimpleLineSymbol lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 3);
+    SimpleFillSymbol fillSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.NULL, Color.BLUE,lineSymbol);
+    mGraphicOverlay.getGraphics().clear();
+    mGraphicOverlay.getGraphics().add( new Graphic(polygon, fillSymbol));
+  }
 
   private class MapTouchListener extends DefaultMapViewOnTouchListener {
     /**
@@ -164,10 +178,10 @@ public class MapFragment extends Fragment implements MapContract.View {
     }
     @Override
     public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
-
+      Log.i("ScreenPoints", "x = " + motionEvent.getX() + " y = "+ motionEvent.getY());
       android.graphics.Point mapPoint = new android.graphics.Point((int) motionEvent.getX(),
           (int) motionEvent.getY());
-
+      mPresenter.setSelectedPoint(getScreenToLocation(mapPoint));
       return true;
     }
   }

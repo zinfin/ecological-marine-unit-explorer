@@ -1,4 +1,7 @@
-package com.esri.android.ecologicalmarineunitexplorer.map;
+package com.esri.android.ecologicalmarineunitexplorer;
+
+import android.app.Application;
+
 /* Copyright 2016 Esri
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,22 +26,6 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
  *
  */
 
-import android.content.Context;
-import com.esri.android.ecologicalmarineunitexplorer.BasePresenter;
-import com.esri.android.ecologicalmarineunitexplorer.BaseView;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.Polygon;
+public class EMUApp extends Application {
 
-public interface MapContract {
-  interface View extends BaseView<Presenter> {
-    Point getScreenToLocation(android.graphics.Point mapPoint);
-    Context getContext();
-    void showSelectedRegion(Polygon polygon);
-  }
-  interface Presenter extends BasePresenter {
-
-    void setSelectedPoint(Point point);
-    Polygon getBufferPolygonForPoint(Point point, double distance);
-
-  }
 }
