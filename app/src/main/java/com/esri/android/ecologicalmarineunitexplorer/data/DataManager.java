@@ -24,20 +24,21 @@ package com.esri.android.ecologicalmarineunitexplorer.data;
  */
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
+import com.android.annotations.concurrency.Immutable;
 import com.esri.android.ecologicalmarineunitexplorer.R;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.datasource.Feature;
 import com.esri.arcgisruntime.datasource.FeatureQueryResult;
 import com.esri.arcgisruntime.datasource.QueryParameters;
 import com.esri.arcgisruntime.datasource.arcgis.ServiceFeatureTable;
-import com.esri.arcgisruntime.geometry.Envelope;
-import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.*;
+import com.google.common.base.Function;
+import com.google.common.collect.*;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class DataManager {
   private ServiceFeatureTable mMeshClusterTable;
@@ -62,44 +63,78 @@ public class DataManager {
   /**
    * Query for water column data at the given geometry
    * @param envelope - represents a buffered geometry around selected point in map
+   * @param callback - SummaryCallback used when query is completed
    * @return a WaterColumn at the location within the geometry
    */
-  public void queryForEmuAtLocation(Envelope envelope){
+  public void queryForEmuAtLocation(Envelope envelope, ServiceApi.SummaryCallback callback){
     QueryParameters queryParameters = new QueryParameters();
     queryParameters.setGeometry(envelope);
     ListenableFuture<FeatureQueryResult> futureResult = mMeshClusterTable.queryFeaturesAsync(queryParameters, ServiceFeatureTable.QueryFeatureFields.LOAD_ALL);
-    processQueryForEMuAtLocation(futureResult);
+    processQueryForEMuAtLocation(envelope, futureResult, callback);
   }
 
   /**
    * Process the listenable future by creating a WaterColumn for
    * any returned data.
+   * @param envelope - an Envelope representing the search area
    * @param futureResult - a ListenableFuture<FeatureQueryResult> to process
+   * @param callback  - a SummaryCallback called when query processing is complete
    * @return - a WaterColumn representing returned features.
    */
-  private void processQueryForEMuAtLocation(final ListenableFuture<FeatureQueryResult> futureResult){
-    final WaterColumn waterColumn =  new WaterColumn();
+  private void processQueryForEMuAtLocation(final Envelope envelope, final ListenableFuture<FeatureQueryResult> futureResult, final ServiceApi.SummaryCallback callback){
+
     futureResult.addDoneListener(new Runnable() {
       @Override public void run() {
         try{
           Log.i("ProcessQuery", "Query done...");
           FeatureQueryResult fqr = futureResult.get();
+
+          Map<Geometry,WaterColumn> pointWaterColumnMap = new HashMap<Geometry, WaterColumn>();
+
           if (fqr != null){
             Log.i("ProcessQuery", "Processing features...");
-            int x = 0;
+
+            List<EMUObservation> emuObservations = new ArrayList<EMUObservation>();
             final Iterator<Feature> iterator = fqr.iterator();
             while (iterator.hasNext()){
               Feature feature = iterator.next();
-              x+=1;
+              Geometry geometry = feature.getGeometry();
               Map<String,Object> map = feature.getAttributes();
-              waterColumn.addObservation(createEMUObservation(map));
+              EMUObservation observation = createEMUObservation(map);
+              emuObservations.add(createEMUObservation(map));
             }
-            Log.i("ProcessingQuery", "Processing complete");
+            // Now we have a list with zero or more EMUObservations
+            // 1.  Create a map of WaterColumn keyed on location
+            // 2.  Determine the closest WaterColumn to the envelope.
+
+            ImmutableSet<EMUObservation> immutableSet = ImmutableSet.copyOf(emuObservations);
+            Function<EMUObservation, Point> locationFunction = new Function<EMUObservation, Point>() {
+              @Nullable @Override public Point apply(EMUObservation observation) {
+                return observation.getLocation();
+              }
+            };
+            ImmutableListMultimap< Point, EMUObservation> observationsByLocation = Multimaps.index(immutableSet, locationFunction);
+            ImmutableMap<Point,Collection<EMUObservation>> map = observationsByLocation.asMap();
+            Set<Point> keys = map.keySet();
+            Iterator<Point> pointIterator = keys.iterator();
+            while (pointIterator.hasNext()){
+              Point p = pointIterator.next();
+              WaterColumn waterColumn = new WaterColumn();
+              Collection<EMUObservation> observations = map.get(p);
+              for (EMUObservation o : observations){
+                waterColumn.addObservation(o);
+              }
+              pointWaterColumnMap.put(p, waterColumn);
+            }
           }
-          if (waterColumn != null){
-            
-            Log.i("WaterColumn", "Water column EMU count = " + waterColumn.emuCount()+ " water column depth = "+ waterColumn.getDepth()+ " meters.");
-          }
+
+          // If there is more than one water column, we only care about the
+          // one closest to the point clicked in the map.
+          WaterColumn closestWaterColumn = findClosestWaterColumn(envelope, pointWaterColumnMap);
+
+
+          // Processing is complete, notify the callback
+          callback.onWaterColumnsLoaded(closestWaterColumn);
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -114,10 +149,6 @@ public class DataManager {
    * @return an EMUObservation for map.
    */
   private EMUObservation createEMUObservation(Map<String,Object> map){
-//    for (String key : map.keySet()){
-//      String v = map.get(key) != null ? map.get(key).toString() : "";
-//      Log.i("Key", "Key = " + key + " value = " + v);
-//    }
     EMUObservation observation = new EMUObservation();
 
     EMU emu = new EMU();
@@ -164,6 +195,12 @@ public class DataManager {
     return observation;
   }
 
+  /**
+   * Get the string value from the map given the column name
+   * @param columnName - a non-null String representing the name of the column in the map
+   * @param map - a map of objects indexed by string
+   * @return  - the string value, may be empty but not null.
+   */
   private String extractValueFromMap(@NonNull String columnName, @NonNull Map<String,Object> map){
     String value = "";
     if (map.containsKey(columnName) && map.get(columnName) != null){
@@ -171,4 +208,41 @@ public class DataManager {
     }
     return value;
   }
+
+  private WaterColumn findClosestWaterColumn(final Envelope envelope, final Map<Geometry,WaterColumn> waterColumnMap){
+    WaterColumn closestWaterColumn = null;
+    if (waterColumnMap.size() == 1){
+      WaterColumn[] columns = waterColumnMap.values().toArray(new WaterColumn[1]);
+      closestWaterColumn = columns[0];
+    }
+    if (waterColumnMap.size() > 1){
+      Point center = envelope.getCenter();
+      LinearUnit linearUnit = new LinearUnit(LinearUnitId.METERS);
+      AngularUnit angularUnit = new AngularUnit(AngularUnitId.DEGREES);
+      Set<Geometry> geometries = waterColumnMap.keySet();
+      Iterator<Geometry> iterator = geometries.iterator();
+      double distance = 0;
+      List<WaterColumn> waterColumnList = new ArrayList<>();
+      while (iterator.hasNext()){
+        Geometry geo = iterator.next();
+        WaterColumn waterColumn = waterColumnMap.get(geo);
+        Point point = (Point) geo;
+        Point waterColumnPoint = new Point(point.getX(), point.getY(), center.getSpatialReference());
+        GeodeticDistanceResult geodeticDistanceResult = GeometryEngine
+            .distanceGeodetic(center, waterColumnPoint, linearUnit, angularUnit, GeodeticCurveType.GEODESIC);
+        double calculatedDistance = geodeticDistanceResult.getDistance();
+        waterColumn.setDistanceFrom(calculatedDistance);
+        waterColumnList.add(waterColumn);
+        Log.i("DistanceFrom", "Distance = " + calculatedDistance);
+      }
+      // Sort water columns
+      Collections.sort(waterColumnList);
+      closestWaterColumn = waterColumnList.get(0);
+      WaterColumn furthers = waterColumnList.get(waterColumnList.size()-1);
+      Log.i("Distances", "Closest = " + closestWaterColumn.getDistanceFrom()+ " furthest =" + furthers.getDistanceFrom() );
+    }
+
+    return closestWaterColumn;
+  }
+
 }

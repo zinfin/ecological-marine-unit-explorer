@@ -29,8 +29,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class WaterColumn {
+public class WaterColumn implements  Comparable<WaterColumn> {
   @NonNull private Set<EMUObservation> emuSet;
+  private double distanceFrom = 0;
 
   public WaterColumn(){
     emuSet = new TreeSet<>();
@@ -64,5 +65,25 @@ public class WaterColumn {
     return "WaterColumn{" +
         "emuSet=" + emuSet +
         '}';
+  }
+
+  @Override public int compareTo(WaterColumn another) {
+    if (getDistanceFrom() < another.getDistanceFrom()){
+      return  -1;
+    }
+    else if (getDistanceFrom() > another.getDistanceFrom()){
+      return 1;
+    }
+    else{
+      return  0;
+    }
+  }
+
+  public double getDistanceFrom() {
+    return distanceFrom;
+  }
+
+  public void setDistanceFrom(double distanceFrom) {
+    this.distanceFrom = distanceFrom;
   }
 }

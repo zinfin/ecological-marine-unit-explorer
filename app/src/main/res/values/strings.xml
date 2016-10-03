@@ -20,4 +20,5 @@
     <string name="thickness">ThicknessPos</string>
     <string name="point_x">POINT_X</string>
     <string name="point_y">POINT_Y</string>
+    <string name="no_emu_found">Please select an ocean location</string>
 </resources>

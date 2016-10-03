@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import com.esri.android.ecologicalmarineunitexplorer.R;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.Polygon;
@@ -58,6 +59,8 @@ public class MapFragment extends Fragment implements MapContract.View {
   private MapView mMapView;
 
   private MapContract.Presenter mPresenter;
+
+
 
   public MapFragment(){}
 
@@ -164,7 +167,11 @@ public class MapFragment extends Fragment implements MapContract.View {
     mGraphicOverlay.getGraphics().add( new Graphic(polygon, fillSymbol));
   }
 
-  private class MapTouchListener extends DefaultMapViewOnTouchListener {
+  @Override public void showDataNotFound() {
+    Toast.makeText(getActivity(), R.string.no_emu_found, Toast.LENGTH_SHORT).show();
+  }
+
+  public class MapTouchListener extends DefaultMapViewOnTouchListener {
     /**
      * Instantiates a new DrawingMapViewOnTouchListener with the specified
      * context and MapView.

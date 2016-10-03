@@ -26,6 +26,7 @@ package com.esri.android.ecologicalmarineunitexplorer.data;
 import android.support.annotation.NonNull;
 import com.esri.arcgisruntime.geometry.Point;
 
+
 public class EMUObservation implements Comparable<EMUObservation> {
   @NonNull private EMU emu;
   @NonNull private int top;

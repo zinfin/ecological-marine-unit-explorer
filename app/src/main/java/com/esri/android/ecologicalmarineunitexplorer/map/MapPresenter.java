@@ -25,13 +25,15 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
  *
  */
 
-import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import com.esri.android.ecologicalmarineunitexplorer.data.DataManager;
+import com.esri.android.ecologicalmarineunitexplorer.data.ServiceApi;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.arcgisruntime.geometry.*;
+
+import java.util.List;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class MapPresenter implements MapContract.Presenter {
@@ -51,11 +53,18 @@ public class MapPresenter implements MapContract.Presenter {
 
   @Override public void setSelectedPoint(Point point) {
     Log.i("MapPresenter", "Selcted point coordinates = x= " + point.getX() + " y= " + point.getY());
-    Polygon polygon = getBufferPolygonForPoint(point, 8000);
+    Polygon polygon = getBufferPolygonForPoint(point, 32000);
     PolygonBuilder builder = new PolygonBuilder(polygon);
     Envelope envelope = builder.getExtent();
     mMapView.showSelectedRegion(polygon);
-    mDataManager.queryForEmuAtLocation(envelope);
+    mDataManager.queryForEmuAtLocation(envelope, new ServiceApi.SummaryCallback() {
+      @Override public void onWaterColumnsLoaded(WaterColumn column) {
+        WaterColumn waterColumn =   column;
+        if (waterColumn == null){
+          mMapView.showDataNotFound();
+        }
+      }
+    });
   }
 
   @Override public Polygon getBufferPolygonForPoint(Point point, double distance) {
