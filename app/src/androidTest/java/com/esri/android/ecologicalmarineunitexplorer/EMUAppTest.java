@@ -121,7 +121,14 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
    * a marker if the location is over an ocean
    */
   public void testClickOnOcean(){
-
+    // This assumes viewpoint at start up hasn't
+    // changed since map was initialized
+    // x = 973.0 y =  891.0
+    solo.clickOnScreen(400,1300,1);
+    boolean emuTextFound = solo.waitForText("EMU ");
+    assertTrue(emuTextFound);
+    boolean buttonFound = solo.searchButton("DETAILS");
+    assertTrue(buttonFound);
   }
 
   /**
@@ -129,7 +136,11 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
    * location shows a toast message
    */
   public void testClickOnLand(){
-
+    // This assumes viewpoint at start up hasn't
+    // changed since map was initialized
+    solo.clickOnScreen(973,1300,1);
+    boolean messageShows = solo.waitForText(getActivity().getString(R.string.no_emu_found));
+    assertTrue(messageShows);
   }
 
   private void requestWritePermission() {

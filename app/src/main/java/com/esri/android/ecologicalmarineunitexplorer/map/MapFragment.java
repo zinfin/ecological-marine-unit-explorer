@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 import com.esri.android.ecologicalmarineunitexplorer.R;
+import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.Polygon;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
@@ -169,6 +170,10 @@ public class MapFragment extends Fragment implements MapContract.View {
 
   @Override public void showDataNotFound() {
     Toast.makeText(getActivity(), R.string.no_emu_found, Toast.LENGTH_SHORT).show();
+  }
+
+  @Override public void showSummary(WaterColumn column) {
+    ((MapActivity) getActivity()).showSummary(column);
   }
 
   public class MapTouchListener extends DefaultMapViewOnTouchListener {

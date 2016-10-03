@@ -62,6 +62,8 @@ public class MapPresenter implements MapContract.Presenter {
         WaterColumn waterColumn =   column;
         if (waterColumn == null){
           mMapView.showDataNotFound();
+        }else{
+          mMapView.showSummary(waterColumn);
         }
       }
     });

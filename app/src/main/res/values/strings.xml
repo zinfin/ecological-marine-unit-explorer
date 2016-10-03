@@ -21,4 +21,8 @@
     <string name="point_x">POINT_X</string>
     <string name="point_y">POINT_Y</string>
     <string name="no_emu_found">Please select an ocean location</string>
+    <string name="bundle_physical_summary">physical_summary</string>
+    <string name="bundle_nutrient_summary">nutrient_summary</string>
+    <string name="bundle_emu_number">emu_number</string>
+    <string name="bundle_thickness">bundle_thickness</string>
 </resources>

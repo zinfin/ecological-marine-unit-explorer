@@ -26,6 +26,7 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
 import android.content.Context;
 import com.esri.android.ecologicalmarineunitexplorer.BasePresenter;
 import com.esri.android.ecologicalmarineunitexplorer.BaseView;
+import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.Polygon;
 
@@ -35,6 +36,7 @@ public interface MapContract {
     Context getContext();
     void showSelectedRegion(Polygon polygon);
     void showDataNotFound();
+    void showSummary(WaterColumn column);
   }
   interface Presenter extends BasePresenter {
 

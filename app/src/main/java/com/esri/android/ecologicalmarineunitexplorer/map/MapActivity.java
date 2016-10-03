@@ -26,10 +26,17 @@
 package com.esri.android.ecologicalmarineunitexplorer.map;
 
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import com.esri.android.ecologicalmarineunitexplorer.R;
+import com.esri.android.ecologicalmarineunitexplorer.data.EMU;
+import com.esri.android.ecologicalmarineunitexplorer.data.EMUObservation;
+import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
+import com.esri.android.ecologicalmarineunitexplorer.summary.SummaryFragment;
 import com.esri.android.ecologicalmarineunitexplorer.util.ActivityUtils;
+
+import java.util.Set;
 
 public class MapActivity extends AppCompatActivity {
 
@@ -58,4 +65,33 @@ public class MapActivity extends AppCompatActivity {
     }
     mMapPresenter = new MapPresenter(mapFragment);
   }
+
+  public void showSummary(WaterColumn waterColumn){
+
+
+    Set<EMUObservation> emuObservations = waterColumn.getEmuSet();
+    EMUObservation [] observations = emuObservations.toArray(new EMUObservation[emuObservations.size()]);
+    EMUObservation observation = observations[0];
+
+    Bundle bundle = new Bundle();
+    bundle.putString(getString(R.string.bundle_physical_summary), observation.getEmu().getPhysicalSummary());
+    bundle.putString(getString(R.string.bundle_nutrient_summary), observation.getEmu().getNutrientSummary());
+    bundle.putInt(getString(R.string.bundle_emu_number), observation.getEmu().getName());
+    bundle.putInt(getString(R.string.bundle_thickness), observation.getThickness());
+
+    final FragmentManager fm = getSupportFragmentManager();
+    SummaryFragment summaryFragment = SummaryFragment.newInstance();
+    summaryFragment.setArguments(bundle);
+    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+    // Replace whatever is in the fragment_container view with this fragment,
+    // and add the transaction to the back stack so the user can navigate back
+    transaction.replace(R.id.fragment_container, summaryFragment);
+    transaction.addToBackStack("summary fragment");
+
+    // Commit the transaction
+    transaction.commit();
+
+  }
+
 }
