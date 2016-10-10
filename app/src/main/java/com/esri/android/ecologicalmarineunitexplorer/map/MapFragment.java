@@ -2,11 +2,16 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -24,6 +29,7 @@ import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.*;
 import com.esri.arcgisruntime.symbology.LineSymbol;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 
@@ -61,7 +67,7 @@ public class MapFragment extends Fragment implements MapContract.View {
 
   private MapContract.Presenter mPresenter;
 
-
+  private Point mSelectedPoint;
 
   public MapFragment(){}
 
@@ -128,6 +134,17 @@ public class MapFragment extends Fragment implements MapContract.View {
         }
       }
     });
+
+    // When map's layout is changed, re-center map on selected point
+    mMapView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+      @Override public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop,
+          int oldRight, int oldBottom) {
+        Log.i("MapView", "Layout changed");
+        if (mSelectedPoint != null){
+          mMapView.setViewpointCenterAsync(mSelectedPoint, 50000000);
+        }
+      }
+    });
   }
 
   /**
@@ -161,11 +178,16 @@ public class MapFragment extends Fragment implements MapContract.View {
   @Override public void setPresenter(MapContract.Presenter presenter) {
       mPresenter = presenter;
   }
+
+  /**
+   * Add a polygon representing an area around the clicked point
+   * @param polygon - polygon representing a buffered area around the clicked point
+   */
   public void showSelectedRegion(Polygon polygon){
     SimpleLineSymbol lineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 3);
     SimpleFillSymbol fillSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.NULL, Color.BLUE,lineSymbol);
-    mGraphicOverlay.getGraphics().clear();
     mGraphicOverlay.getGraphics().add( new Graphic(polygon, fillSymbol));
+
   }
 
   @Override public void showDataNotFound() {
@@ -174,6 +196,16 @@ public class MapFragment extends Fragment implements MapContract.View {
 
   @Override public void showSummary(WaterColumn column) {
     ((MapActivity) getActivity()).showSummary(column);
+  }
+
+  @Override public void showClickedLocation(Point point) {
+    Bitmap icon = BitmapFactory.decodeResource(getActivity().getResources(), R.mipmap.blue_pin);
+    BitmapDrawable drawable = new BitmapDrawable(getResources(), icon);
+    PictureMarkerSymbol markerSymbol = new PictureMarkerSymbol(drawable);
+    Graphic marker = new Graphic(point, markerSymbol);
+    mGraphicOverlay.getGraphics().clear();
+    mGraphicOverlay.getGraphics().add(marker);
+
   }
 
   public class MapTouchListener extends DefaultMapViewOnTouchListener {
@@ -193,7 +225,8 @@ public class MapFragment extends Fragment implements MapContract.View {
       Log.i("ScreenPoints", "x = " + motionEvent.getX() + " y = "+ motionEvent.getY());
       android.graphics.Point mapPoint = new android.graphics.Point((int) motionEvent.getX(),
           (int) motionEvent.getY());
-      mPresenter.setSelectedPoint(getScreenToLocation(mapPoint));
+      mSelectedPoint = getScreenToLocation(mapPoint);
+      mPresenter.setSelectedPoint(mSelectedPoint);
       return true;
     }
   }

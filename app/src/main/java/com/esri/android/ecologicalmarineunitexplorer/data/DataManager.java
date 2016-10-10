@@ -149,6 +149,8 @@ public class DataManager {
    * @return an EMUObservation for map.
    */
   private EMUObservation createEMUObservation(Map<String,Object> map){
+    map.keySet().toString();
+    map.values().toString();
     EMUObservation observation = new EMUObservation();
 
     EMU emu = new EMU();
@@ -180,7 +182,8 @@ public class DataManager {
     emu.setGeomorphologyFeatures(geoFeatures);
 
     // Set the top
-    observation.setTop(Integer.parseInt(map.get("UnitTop").toString()));
+    String tString = extractValueFromMap("UnitTop", map);
+    observation.setTop(Integer.parseInt(tString));
 
     // Set the geoLocation
     double x = Double.parseDouble(extractValueFromMap(mContext.getString(R.string.point_x),map));

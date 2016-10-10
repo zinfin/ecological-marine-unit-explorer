@@ -52,11 +52,12 @@ public class MapPresenter implements MapContract.Presenter {
   }
 
   @Override public void setSelectedPoint(Point point) {
+    mMapView.showClickedLocation(point);
     Log.i("MapPresenter", "Selcted point coordinates = x= " + point.getX() + " y= " + point.getY());
     Polygon polygon = getBufferPolygonForPoint(point, 32000);
     PolygonBuilder builder = new PolygonBuilder(polygon);
     Envelope envelope = builder.getExtent();
-    mMapView.showSelectedRegion(polygon);
+   // mMapView.showSelectedRegion(polygon);
     mDataManager.queryForEmuAtLocation(envelope, new ServiceApi.SummaryCallback() {
       @Override public void onWaterColumnsLoaded(WaterColumn column) {
         WaterColumn waterColumn =   column;

@@ -35,10 +35,10 @@ public class EMUObservation implements Comparable<EMUObservation> {
 
   @Override public int compareTo(EMUObservation another) {
     if (this.getTop() > another.getTop()){
-      return 1;
+      return -1;
     }
     if (this.getTop() < another.getTop()){
-      return -1;
+      return 1;
     }else{
       return 0;
     }

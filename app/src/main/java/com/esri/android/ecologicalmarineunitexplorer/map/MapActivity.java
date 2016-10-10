@@ -29,11 +29,14 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import com.esri.android.ecologicalmarineunitexplorer.R;
-import com.esri.android.ecologicalmarineunitexplorer.data.EMU;
 import com.esri.android.ecologicalmarineunitexplorer.data.EMUObservation;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.android.ecologicalmarineunitexplorer.summary.SummaryFragment;
+import com.esri.android.ecologicalmarineunitexplorer.summary.SummaryPresenter;
 import com.esri.android.ecologicalmarineunitexplorer.util.ActivityUtils;
 
 import java.util.Set;
@@ -41,6 +44,7 @@ import java.util.Set;
 public class MapActivity extends AppCompatActivity {
 
   private MapPresenter mMapPresenter;
+  private SummaryPresenter mSummaryPresenter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -48,45 +52,48 @@ public class MapActivity extends AppCompatActivity {
     setContentView(R.layout.main_activity);
 
     // Set up fragments
-    configureFragments();
+    setUpMagFragment();
   }
 
   /**
-   * Configure all the associated fragments
+   * Configure the map fragment
    */
-  private void configureFragments(){
+  private void setUpMagFragment(){
     final FragmentManager fm = getSupportFragmentManager();
-    MapFragment mapFragment = (MapFragment) fm.findFragmentById(R.id.fragment_container);
+    MapFragment mapFragment = (MapFragment) fm.findFragmentById(R.id.map_container);
 
     if (mapFragment == null) {
       mapFragment = MapFragment.newInstance();
+      mMapPresenter = new MapPresenter(mapFragment);
       ActivityUtils.addFragmentToActivity(
-          getSupportFragmentManager(), mapFragment, R.id.fragment_container, "map fragment");
+          getSupportFragmentManager(), mapFragment, R.id.map_container, "map fragment");
     }
-    mMapPresenter = new MapPresenter(mapFragment);
+
   }
 
   public void showSummary(WaterColumn waterColumn){
-
-
-    Set<EMUObservation> emuObservations = waterColumn.getEmuSet();
-    EMUObservation [] observations = emuObservations.toArray(new EMUObservation[emuObservations.size()]);
-    EMUObservation observation = observations[0];
-
-    Bundle bundle = new Bundle();
-    bundle.putString(getString(R.string.bundle_physical_summary), observation.getEmu().getPhysicalSummary());
-    bundle.putString(getString(R.string.bundle_nutrient_summary), observation.getEmu().getNutrientSummary());
-    bundle.putInt(getString(R.string.bundle_emu_number), observation.getEmu().getName());
-    bundle.putInt(getString(R.string.bundle_thickness), observation.getThickness());
-
     final FragmentManager fm = getSupportFragmentManager();
-    SummaryFragment summaryFragment = SummaryFragment.newInstance();
-    summaryFragment.setArguments(bundle);
+    SummaryFragment summaryFragment = (SummaryFragment) fm.findFragmentById(R.id.summary_recycler_view) ;
+    if (summaryFragment == null){
+      summaryFragment = SummaryFragment.newInstance();
+      mSummaryPresenter = new SummaryPresenter(summaryFragment);
+    }
+    mSummaryPresenter.setWaterColumn(waterColumn);
+
     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-    // Replace whatever is in the fragment_container view with this fragment,
+    // Adjust the map's layout
+    FrameLayout mapLayout = (FrameLayout) findViewById(R.id.map_container);
+    mapLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,700));
+    mapLayout.requestLayout();
+
+    FrameLayout summaryLayout = (FrameLayout) findViewById(R.id.summary_container);
+    summaryLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 900));
+    summaryLayout.requestLayout();
+
+    // Replace whatever is in the summary_container view with this fragment,
     // and add the transaction to the back stack so the user can navigate back
-    transaction.replace(R.id.fragment_container, summaryFragment);
+    transaction.replace(R.id.summary_container, summaryFragment);
     transaction.addToBackStack("summary fragment");
 
     // Commit the transaction

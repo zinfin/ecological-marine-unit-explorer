@@ -1,4 +1,4 @@
-package com.esri.android.ecologicalmarineunitexplorer.map;
+package com.esri.android.ecologicalmarineunitexplorer.summary;
 /* Copyright 2016 Esri
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,26 +23,16 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
  *
  */
 
-import android.content.Context;
 import com.esri.android.ecologicalmarineunitexplorer.BasePresenter;
 import com.esri.android.ecologicalmarineunitexplorer.BaseView;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.Polygon;
 
-public interface MapContract {
-  interface View extends BaseView<Presenter> {
-    Point getScreenToLocation(android.graphics.Point mapPoint);
-    Context getContext();
-    //void showSelectedRegion(Polygon polygon);
-    void showDataNotFound();
-    void showSummary(WaterColumn column);
-    void showClickedLocation(Point point);
+public interface SummaryContract {
+
+  interface View extends BaseView<SummaryContract.Presenter> {
+    void showWaterColumn(WaterColumn waterColumn);
   }
   interface Presenter extends BasePresenter {
-
-    void setSelectedPoint(Point point);
-    Polygon getBufferPolygonForPoint(Point point, double distance);
-
+    void setWaterColumn(WaterColumn waterColumn);
   }
 }

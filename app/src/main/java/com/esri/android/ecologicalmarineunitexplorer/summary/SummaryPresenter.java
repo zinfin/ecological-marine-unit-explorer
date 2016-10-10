@@ -1,4 +1,7 @@
-package com.esri.android.ecologicalmarineunitexplorer.map;
+package com.esri.android.ecologicalmarineunitexplorer.summary;
+
+
+
 /* Copyright 2016 Esri
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,26 +26,26 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
  *
  */
 
-import android.content.Context;
-import com.esri.android.ecologicalmarineunitexplorer.BasePresenter;
-import com.esri.android.ecologicalmarineunitexplorer.BaseView;
+import android.support.annotation.NonNull;
+import com.esri.android.ecologicalmarineunitexplorer.data.EMUObservation;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.Polygon;
 
-public interface MapContract {
-  interface View extends BaseView<Presenter> {
-    Point getScreenToLocation(android.graphics.Point mapPoint);
-    Context getContext();
-    //void showSelectedRegion(Polygon polygon);
-    void showDataNotFound();
-    void showSummary(WaterColumn column);
-    void showClickedLocation(Point point);
+import java.util.Set;
+
+public class SummaryPresenter implements SummaryContract.Presenter {
+
+  private SummaryFragment mSummaryView;
+
+  public SummaryPresenter(@NonNull SummaryFragment fragment){
+    mSummaryView = fragment;
+    mSummaryView.setPresenter(this);
   }
-  interface Presenter extends BasePresenter {
+  @Override public void setWaterColumn(WaterColumn waterColumn) {
+    mSummaryView.showWaterColumn(waterColumn);
+  }
 
-    void setSelectedPoint(Point point);
-    Polygon getBufferPolygonForPoint(Point point, double distance);
+  @Override public void start() {
 
   }
+
 }
