@@ -5,25 +5,4 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorText">#FFFFFF</color>
     <color name="Cluster3">#708cd9</color>
-    <color name="Cluster5">#a0d7d1</color>
-    <color name="Cluster8">#ccb0ba</color>
-    <color name="Cluster9">#c5b6d0</color>
-    <color name="Cluster10">#7570e6</color>
-    <color name="Cluster11">#cabfd9</color>
-    <color name="Cluster13">#364799</color>
-    <color name="Cluster14">#465290</color>
-    <color name="Cluster18">#eb96cc</color>
-    <color name="Cluster19">#b9caf6</color>
-    <color name="Cluster21">#ebbccd</color>
-    <color name="Cluster23">#a0d7d1</color>
-    <color name="Cluster24">#eba9d4</color>
-    <color name="Cluster25">#a0d7d1</color>
-    <color name="Cluster26">#9365e6</color>
-    <color name="Cluster29">#4792c9</color>
-    <color name="Cluster30">#b4d7e7</color>
-    <color name="Cluster31">#9ad4e6</color>
-    <color name="Cluster33">#7591ff</color>
-    <color name="Cluster35">#9edbff</color>
-    <color name="Cluster36">#1a52aa</color>
-    <color name="Cluster37">#4792c9</color>
 </resources>

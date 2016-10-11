@@ -2,6 +2,7 @@ package com.esri.android.ecologicalmarineunitexplorer.summary;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -149,14 +150,89 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
 
     @Override public void onBindViewHolder(RecycleViewHolder holder, int position) {
       final EMUObservation observation = emuObservations.get(position);
-      holder.txtThickness.setText(observation.getThickness() + " meters");
+      holder.txtThickness.setText("Layer thickness at this location " + observation.getThickness() + " meters");
       holder.txtName.setText(observation.getEmu().getName().toString());
       holder.txtNutrients.setText(observation.getEmu().getNutrientSummary());
       holder.txtSummary.setText(observation.getEmu().getPhysicalSummary());
-
       int top = observation.getTop();
       holder.txtTop.setText("Distance from surface " + top + " meters");
+      holder.rectangle.setBackgroundColor(Color.parseColor(getColorForCluster(observation.getEmu().getName())));
       holder.bind(observation);
+    }
+
+    private String getColorForCluster(int emuName){
+      String colorCode = null;
+      switch (emuName){
+        case 3:
+          colorCode = getString(R.string.Cluster3);
+          break;
+        case 5:
+          colorCode = getString(R.string.Cluster5);
+          break;
+        case 8:
+          colorCode = getString(R.string.Cluster8);
+          break;
+        case 9:
+          colorCode = getString(R.string.Cluster9);
+          break;
+        case 10:
+          colorCode = getString(R.string.Cluster10);
+          break;
+        case 11:
+          colorCode = getString(R.string.Cluster11);
+          break;
+        case 13:
+          colorCode = getString(R.string.Cluster13);
+          break;
+        case 14:
+          colorCode = getString(R.string.Cluster14);
+          break;
+        case 18:
+          colorCode = getString(R.string.Cluster18);
+          break;
+        case 19:
+          colorCode = getString(R.string.Cluster19);
+          break;
+        case 21:
+          colorCode = getString(R.string.Cluster21);
+          break;
+        case 23:
+          colorCode = getString(R.string.Cluster23);
+          break;
+        case 24:
+          colorCode = getString(R.string.Cluster24);
+          break;
+        case 25:
+          colorCode = getString(R.string.Cluster25);
+          break;
+        case 26:
+          colorCode = getString(R.string.Cluster26);
+          break;
+        case 29:
+          colorCode = getString(R.string.Cluster29);
+          break;
+        case 30:
+          colorCode = getString(R.string.Cluster30);
+          break;
+        case 31:
+          colorCode = getString(R.string.Cluster31);
+          break;
+        case 33:
+          colorCode = getString(R.string.Cluster33);
+          break;
+        case 35:
+          colorCode = getString(R.string.Cluster35);
+          break;
+        case 36:
+          colorCode = getString(R.string.Cluster36);
+          break;
+        case 37:
+          colorCode = getString(R.string.Cluster37);
+          break;
+        default:
+          colorCode = "#b6f442";
+      }
+      return colorCode;
     }
 
     @Override public int getItemCount() {
@@ -170,6 +246,7 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
     public final TextView txtName;
     public final TextView txtThickness;
     public final TextView txtTop;
+    public final ImageView rectangle;
 
     public RecycleViewHolder(final View emuView){
       super(emuView);
@@ -178,19 +255,12 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
       txtName = (TextView) emuView.findViewById(R.id.txtName);
       txtThickness = (TextView) emuView.findViewById(R.id.txt_thickness);
       txtTop = (TextView) emuView.findViewById(R.id.txt_top);
-   //   Drawable rectangle = ResourcesCompat.getDrawable(R.drawable.rectangle, R.co)
+      rectangle = (ImageView) emuView.findViewById(R.id.emu_shape);
+
     }
     public final void bind(final EMUObservation observation){
       //no op for now
     }
-//    private Color getColorForCluster(int emuName){
-//      int colorId =0;
-//      switch (emuName){
-//        case 3:
-//          colorId = getResources().getColor(R.color.Cluster3);
-//          break;
-//      }
-//      return
-//    }
+
   }
 }
