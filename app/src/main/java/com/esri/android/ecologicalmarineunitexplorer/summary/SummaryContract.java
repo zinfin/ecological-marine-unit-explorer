@@ -30,7 +30,7 @@ import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 public interface SummaryContract {
 
   interface View extends BaseView<SummaryContract.Presenter> {
-    void showWaterColumn(WaterColumn waterColumn);
+    void setWaterColumn(WaterColumn waterColumn);
   }
   interface Presenter extends BasePresenter {
     void setWaterColumn(WaterColumn waterColumn);

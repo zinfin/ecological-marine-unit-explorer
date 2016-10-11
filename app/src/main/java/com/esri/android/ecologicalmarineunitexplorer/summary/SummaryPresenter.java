@@ -27,10 +27,7 @@ package com.esri.android.ecologicalmarineunitexplorer.summary;
  */
 
 import android.support.annotation.NonNull;
-import com.esri.android.ecologicalmarineunitexplorer.data.EMUObservation;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
-
-import java.util.Set;
 
 public class SummaryPresenter implements SummaryContract.Presenter {
 
@@ -41,7 +38,7 @@ public class SummaryPresenter implements SummaryContract.Presenter {
     mSummaryView.setPresenter(this);
   }
   @Override public void setWaterColumn(WaterColumn waterColumn) {
-    mSummaryView.showWaterColumn(waterColumn);
+    mSummaryView.setWaterColumn(waterColumn);
   }
 
   @Override public void start() {

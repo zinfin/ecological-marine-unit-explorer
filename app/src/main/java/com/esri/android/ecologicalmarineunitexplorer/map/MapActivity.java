@@ -38,6 +38,7 @@ import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.android.ecologicalmarineunitexplorer.summary.SummaryFragment;
 import com.esri.android.ecologicalmarineunitexplorer.summary.SummaryPresenter;
 import com.esri.android.ecologicalmarineunitexplorer.util.ActivityUtils;
+import com.esri.android.ecologicalmarineunitexplorer.watercolumn.WaterColumnFragment;
 
 import java.util.Set;
 
@@ -98,6 +99,16 @@ public class MapActivity extends AppCompatActivity {
 
     // Commit the transaction
     transaction.commit();
+
+    WaterColumnFragment waterColumnFragment = (WaterColumnFragment) fm.findFragmentById(R.id.water_column_linear_layout_top);
+    if (waterColumnFragment == null){
+      waterColumnFragment = WaterColumnFragment.newInstance();
+    }
+    waterColumnFragment.setWaterColumn(waterColumn);
+    FragmentTransaction wcTransaction = getSupportFragmentManager().beginTransaction();
+    wcTransaction.replace(R.id.column_container, waterColumnFragment);
+    wcTransaction.commit();
+
 
   }
 

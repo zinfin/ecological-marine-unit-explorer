@@ -1,14 +1,11 @@
 package com.esri.android.ecologicalmarineunitexplorer.summary;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +20,7 @@ import com.esri.android.ecologicalmarineunitexplorer.R;
 import com.esri.android.ecologicalmarineunitexplorer.data.EMUObservation;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.android.ecologicalmarineunitexplorer.databinding.SummaryLayoutBinding;
+import com.esri.android.ecologicalmarineunitexplorer.util.EmuHelper;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
@@ -58,25 +56,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class SummaryFragment extends Fragment implements SummaryContract.View {
 
-  private SummaryLayoutBinding mSummaryLayoutBinding;
-  private View mRoot;
+
   private List<EMUObservation> emuObservations = new ArrayList<>();
   private RecyclerView mEmuObsView;
   private EMUAdapter mEmuAdapter;
+  private SummaryContract.Presenter mPresenter;
 
   public static SummaryFragment newInstance() {
-
-    Bundle args = new Bundle();
-
     SummaryFragment fragment = new SummaryFragment();
-    fragment.setArguments(args);
     return fragment;
   }
+
   @Override
   public final void onCreate(@NonNull final Bundle savedInstance) {
 
     super.onCreate(savedInstance);
-    Log.i("SummaryFragment", "onCreate");
     mEmuAdapter = new EMUAdapter(getContext(), R.id.summary_container, emuObservations);
   }
 
@@ -84,7 +78,6 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
   @Nullable
   public  View onCreateView(final LayoutInflater layoutInflater, final ViewGroup container,
       final Bundle savedInstance){
-    Log.i("SummaryFragment", "onCreateView");
     setUpToolbar();
 
     mEmuObsView = (RecyclerView) layoutInflater.inflate(R.layout.summary_recycler_view, container,false) ;
@@ -111,13 +104,15 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
   private void setUpToolbar() {
     final Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
     ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-    ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Ocean Summary for Location");
+    ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.ocean_summary_location_title);
   }
 
-  @Override public void showWaterColumn(WaterColumn waterColumn) {
-
+  /**
+   * Set the data for this view
+   * @param waterColumn - A WaterColumn object containing EMUObservations to display
+   */
+  @Override public void setWaterColumn(WaterColumn waterColumn) {
     Set<EMUObservation> emuSet = waterColumn.getEmuSet();
-
     emuObservations.clear();
     for (EMUObservation observation : emuSet){
       emuObservations.add(observation);
@@ -125,7 +120,7 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
   }
 
   @Override public void setPresenter(SummaryContract.Presenter presenter) {
-
+    mPresenter = presenter;
   }
 
   public class EMUAdapter extends RecyclerView.Adapter<RecycleViewHolder>{
@@ -148,92 +143,23 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
       return new RecycleViewHolder(emuView);
     }
 
+    /**
+     * Bind data to the view
+     * @param holder - the recycle view holder
+     * @param position - position of the item in the data provider
+     */
     @Override public void onBindViewHolder(RecycleViewHolder holder, int position) {
       final EMUObservation observation = emuObservations.get(position);
-      holder.txtThickness.setText("Layer thickness at this location " + observation.getThickness() + " meters");
+      holder.txtThickness.setText(getString(R.string.layer_thickness_desc) + observation.getThickness() + getString(R.string.meters));
       holder.txtName.setText(observation.getEmu().getName().toString());
       holder.txtNutrients.setText(observation.getEmu().getNutrientSummary());
       holder.txtSummary.setText(observation.getEmu().getPhysicalSummary());
       int top = observation.getTop();
-      holder.txtTop.setText("Distance from surface " + top + " meters");
-      holder.rectangle.setBackgroundColor(Color.parseColor(getColorForCluster(observation.getEmu().getName())));
+      holder.txtTop.setText(getString(R.string.below_surface_description) + top + getString(R.string.meters));
+      holder.rectangle.setBackgroundColor(Color.parseColor(EmuHelper.getColorForEMUCluster(getActivity().getApplicationContext(),observation.getEmu().getName())));
       holder.bind(observation);
     }
 
-    private String getColorForCluster(int emuName){
-      String colorCode = null;
-      switch (emuName){
-        case 3:
-          colorCode = getString(R.string.Cluster3);
-          break;
-        case 5:
-          colorCode = getString(R.string.Cluster5);
-          break;
-        case 8:
-          colorCode = getString(R.string.Cluster8);
-          break;
-        case 9:
-          colorCode = getString(R.string.Cluster9);
-          break;
-        case 10:
-          colorCode = getString(R.string.Cluster10);
-          break;
-        case 11:
-          colorCode = getString(R.string.Cluster11);
-          break;
-        case 13:
-          colorCode = getString(R.string.Cluster13);
-          break;
-        case 14:
-          colorCode = getString(R.string.Cluster14);
-          break;
-        case 18:
-          colorCode = getString(R.string.Cluster18);
-          break;
-        case 19:
-          colorCode = getString(R.string.Cluster19);
-          break;
-        case 21:
-          colorCode = getString(R.string.Cluster21);
-          break;
-        case 23:
-          colorCode = getString(R.string.Cluster23);
-          break;
-        case 24:
-          colorCode = getString(R.string.Cluster24);
-          break;
-        case 25:
-          colorCode = getString(R.string.Cluster25);
-          break;
-        case 26:
-          colorCode = getString(R.string.Cluster26);
-          break;
-        case 29:
-          colorCode = getString(R.string.Cluster29);
-          break;
-        case 30:
-          colorCode = getString(R.string.Cluster30);
-          break;
-        case 31:
-          colorCode = getString(R.string.Cluster31);
-          break;
-        case 33:
-          colorCode = getString(R.string.Cluster33);
-          break;
-        case 35:
-          colorCode = getString(R.string.Cluster35);
-          break;
-        case 36:
-          colorCode = getString(R.string.Cluster36);
-          break;
-        case 37:
-          colorCode = getString(R.string.Cluster37);
-          break;
-        default:
-          colorCode = "#b6f442";
-      }
-      return colorCode;
-    }
 
     @Override public int getItemCount() {
       return emuObservations.size();

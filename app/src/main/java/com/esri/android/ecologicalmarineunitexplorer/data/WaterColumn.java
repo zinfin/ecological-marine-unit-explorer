@@ -40,13 +40,10 @@ public class WaterColumn implements  Comparable<WaterColumn> {
     return emuSet;
   }
 
-  public void setEmuSet(@NonNull Set<EMUObservation> emuSet) {
-    this.emuSet = emuSet;
-  }
-
   public void addObservation(EMUObservation observation){
     emuSet.add(observation);
   }
+
   public int emuCount(){
     return emuSet.size();
   }
@@ -86,4 +83,5 @@ public class WaterColumn implements  Comparable<WaterColumn> {
   public void setDistanceFrom(double distanceFrom) {
     this.distanceFrom = distanceFrom;
   }
+
 }

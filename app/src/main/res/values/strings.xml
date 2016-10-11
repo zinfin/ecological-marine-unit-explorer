@@ -47,4 +47,8 @@
     <string name="Cluster35">#9edbff</string>
     <string name="Cluster36">#1a52aa</string>
     <string name="Cluster37">#4792c9</string>
+    <string name="layer_thickness_desc">"Layer thickness at this location "</string>
+    <string name="meters">" meters"</string>
+    <string name="below_surface_description">"Distance below surface "</string>
+    <string name="ocean_summary_location_title">Ocean Summary for Location</string>
 </resources>
