@@ -1,26 +1,21 @@
 package com.esri.android.ecologicalmarineunitexplorer;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.test.ActivityInstrumentationTestCase2;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 import com.robotium.solo.Solo;
 import com.esri.android.ecologicalmarineunitexplorer.map.MapActivity;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /* Copyright 2016 Esri
  *
@@ -125,7 +120,7 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
     // This assumes viewpoint at start up hasn't
     // changed since map was initialized
     // x = 973.0 y =  891.0
-    solo.clickOnScreen(400,1300,1);
+    solo.clickOnScreen(1002,937,1);
     boolean emuTextFound = solo.waitForText("EMU ");
     assertTrue(emuTextFound);
     boolean buttonFound = solo.searchButton("DETAILS");
@@ -139,7 +134,8 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
   public void testClickOnLand(){
     // This assumes viewpoint at start up hasn't
     // changed since map was initialized
-    solo.clickOnScreen(973,1300,1);
+    assertTrue(solo.waitForDialogToClose());
+    solo.clickOnScreen(586,231,2);
     boolean messageShows = solo.waitForText(getActivity().getString(R.string.no_emu_found));
     assertTrue(messageShows);
   }
@@ -173,12 +169,31 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
     assertTrue(emuTextFound);
     boolean buttonFound = solo.searchButton("DETAILS");
     assertTrue(buttonFound);
-    Button button = solo.getButton(0);
+    Button button = (Button) getActivity().findViewById(0);
     assertTrue(button != null);
-    button = solo.getButton(1);
+    button = (Button) getActivity().findViewById(2);
     assertTrue(button != null);
   }
 
+  /**
+   * Validate that water column segments
+   * are selected when the colored
+   * rectangle in each recycler view item
+   * is clicked.
+   */
+  public void testRectangleClickSelectsSegment(){
+    solo.clickOnScreen(400,1300,1);
+    boolean emuTextFound = solo.waitForText("EMU ");
+    assertTrue(emuTextFound);
+    boolean scrollsuccess = solo.scrollDownRecyclerView(2);
+    assertTrue(scrollsuccess);
+    ImageView imageView = (ImageView) getActivity().findViewById(R.id.emu_rectangle);
+    imageView.performClick();
+    Button button = (Button) getActivity().findViewById(2);
+    int c = button.getPaint().getColor();
+    String hexColor = String.format("#%06X", (0xFFFFFF & c));
+    Log.i("color", hexColor);
+  }
   private void requestWritePermission() {
 
     if (ContextCompat.checkSelfPermission(getActivity(),

@@ -31,6 +31,7 @@ public interface SummaryContract {
 
   interface View extends BaseView<SummaryContract.Presenter> {
     void setWaterColumn(WaterColumn waterColumn);
+    void scrollToSummary(int position);
   }
   interface Presenter extends BasePresenter {
     void setWaterColumn(WaterColumn waterColumn);

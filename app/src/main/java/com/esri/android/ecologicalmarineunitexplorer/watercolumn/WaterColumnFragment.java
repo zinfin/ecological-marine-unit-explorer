@@ -1,6 +1,13 @@
 package com.esri.android.ecologicalmarineunitexplorer.watercolumn;
 
+import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -8,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,6 +55,13 @@ public class WaterColumnFragment extends Fragment {
   private LinearLayout mRoot;
   private LinearLayout mButtonContainer;
   private WaterColumn mWaterColumn;
+  private OnWaterColumnSegmentClickedListener mCallback;
+  private Button mSelectedButton;
+
+  // Define behavior for column clicking
+  public interface OnWaterColumnSegmentClickedListener {
+    public void onSegmentClicked(int position);
+  }
 
   public static WaterColumnFragment newInstance(){
     return new WaterColumnFragment();
@@ -62,6 +77,21 @@ public class WaterColumnFragment extends Fragment {
     }
     return  mRoot;
   }
+
+  @Override
+  public void onAttach(Context activity) {
+    super.onAttach(activity);
+
+    // This makes sure that the container activity has implemented
+    // the callback interface. If not, it throws an exception
+    try {
+      mCallback = (OnWaterColumnSegmentClickedListener) activity;
+    } catch (ClassCastException e) {
+      throw new ClassCastException(activity.toString()
+          + " must implement OnWaterColumnSegmentClickedListener");
+    }
+  }
+
   public void setWaterColumn(WaterColumn waterColumn){
     mWaterColumn = waterColumn;
   }
@@ -91,14 +121,56 @@ public class WaterColumnFragment extends Fragment {
     int buttonId = 0;
     for (EMUObservation observation: emuObservationSet){
       float relativeSize = (observation.getThickness()/depth) * 100;
-      Log.i("WaterColumnFragment", "thickness = "+ observation.getThickness()+ " depth= "+ depth+ " relative size " + relativeSize);
-      Button button = new Button(getContext());
+      final Button button = new Button(getContext());
       LinearLayout.LayoutParams  layoutParams  =  new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0, relativeSize);
       button.setLayoutParams(layoutParams);
-      button.setBackgroundColor(Color.parseColor(EmuHelper.getColorForEMUCluster(getContext(), observation.getEmu().getName())));
+      button.setBackground(buildStateList(observation.getEmu().getName()));
+
       button.setId(buttonId);
+      button.setOnClickListener(new View.OnClickListener() {
+        @Override public void onClick(View v) {
+          if (mSelectedButton != null){
+            mSelectedButton.setSelected(false);
+          }
+          button.setSelected(true);
+          mSelectedButton = button;
+          mCallback.onSegmentClicked(v.getId());
+        }
+      });
       mButtonContainer.addView(button);
       buttonId = buttonId + 1;
     }
   }
+
+  private StateListDrawable buildStateList(int emuName){
+    StateListDrawable stateListDrawable = new StateListDrawable();
+
+    GradientDrawable defaultShape = new GradientDrawable();
+    int color = Color.parseColor(EmuHelper.getColorForEMUCluster(getContext(), emuName));
+    defaultShape.setColor(color);
+
+    GradientDrawable selectedPressShape = new GradientDrawable();
+    selectedPressShape.setColor(color);
+    selectedPressShape.setStroke(5,Color.parseColor("#f4f442"));
+
+    stateListDrawable.addState(new int[] {android.R.attr.state_pressed}, selectedPressShape);
+    stateListDrawable.addState(new int[] {android.R.attr.state_selected}, selectedPressShape);
+    stateListDrawable.addState(new int[] {android.R.attr.state_enabled}, defaultShape);
+
+    return stateListDrawable;
+  }
+  /**
+   * Set selected state of a water column segment
+   * @param position
+   */
+  public void highlightSegment(int position){
+    Button button =(Button) mButtonContainer.getChildAt(position);
+    if (mSelectedButton != null){
+      mSelectedButton.setSelected(false);
+    }
+    button.setSelected(true);
+    mSelectedButton = button;
+  }
+
+
 }

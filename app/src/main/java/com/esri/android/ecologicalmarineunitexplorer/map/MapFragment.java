@@ -76,6 +76,7 @@ public class MapFragment extends Fragment implements MapContract.View {
 
   private Point mSelectedPoint;
   private ArcGISMap mMap;
+
   public MapFragment(){}
 
   public static MapFragment newInstance(){
@@ -200,13 +201,13 @@ public class MapFragment extends Fragment implements MapContract.View {
   @Override
   public final void onResume(){
     super.onResume();
- //   mMapView.resume();
+    mMapView.resume();
   }
 
   @Override
   public final void onPause() {
     super.onPause();
-  //  mMapView.pause();
+    mMapView.pause();
   }
   /**
    * Obtain the geo location for a given point
@@ -256,10 +257,7 @@ public class MapFragment extends Fragment implements MapContract.View {
     Graphic marker = new Graphic(point, markerSymbol);
     mGraphicOverlay.getGraphics().clear();
     mGraphicOverlay.getGraphics().add(marker);
-
   }
-
-
 
   public class MapTouchListener extends DefaultMapViewOnTouchListener {
     /**
@@ -277,6 +275,7 @@ public class MapFragment extends Fragment implements MapContract.View {
     public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
       android.graphics.Point mapPoint = new android.graphics.Point((int) motionEvent.getX(),
           (int) motionEvent.getY());
+      Log.i("ScreenLocation", "screen position = x= " + mapPoint.x + " y= "+ mapPoint.y);
       mSelectedPoint = getScreenToLocation(mapPoint);
       mPresenter.setSelectedPoint(mSelectedPoint);
       return true;

@@ -27,7 +27,7 @@
                   android:layout_height="match_parent"
                   android:orientation="horizontal">
 
-        <FrameLayout android:layout_width="-1dp"
+        <FrameLayout android:layout_width="-2dp"
                      android:layout_height="match_parent"
                      android:id="@+id/column_container">
 

@@ -19,9 +19,7 @@ import android.widget.TextView;
 import com.esri.android.ecologicalmarineunitexplorer.R;
 import com.esri.android.ecologicalmarineunitexplorer.data.EMUObservation;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
-import com.esri.android.ecologicalmarineunitexplorer.databinding.SummaryLayoutBinding;
 import com.esri.android.ecologicalmarineunitexplorer.util.EmuHelper;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,12 +60,17 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
   private WaterColumn mWaterColumn;
   private EMUAdapter mEmuAdapter;
   private SummaryContract.Presenter mPresenter;
+  private OnRectangleTappedListener mCallback;
 
   public static SummaryFragment newInstance() {
     SummaryFragment fragment = new SummaryFragment();
     return fragment;
   }
 
+  // Define behavior for rectangle tapping
+  public interface OnRectangleTappedListener {
+    public void onRectangleTap(int position);
+  }
   @Override
   public final void onCreate(@NonNull final Bundle savedInstance) {
 
@@ -92,6 +95,20 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
     }
 
     return mEmuObsView;
+  }
+
+  @Override
+  public void onAttach(Context activity) {
+    super.onAttach(activity);
+
+    // This makes sure that the container activity has implemented
+    // the callback interface. If not, it throws an exception
+    try {
+      mCallback = (OnRectangleTappedListener) activity;
+    } catch (ClassCastException e) {
+      throw new ClassCastException(activity.toString()
+          + " must implement OnRectangleTappedListener");
+    }
   }
   public void onSaveInstanceState (Bundle outState){
     if (mWaterColumn != null){
@@ -125,6 +142,10 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
     }
   }
 
+  @Override public void scrollToSummary(int position) {
+    mEmuObsView.scrollToPosition(position);
+  }
+
   @Override public void setPresenter(SummaryContract.Presenter presenter) {
     mPresenter = presenter;
   }
@@ -154,7 +175,7 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
      * @param holder - the recycle view holder
      * @param position - position of the item in the data provider
      */
-    @Override public void onBindViewHolder(RecycleViewHolder holder, int position) {
+    @Override public void onBindViewHolder(RecycleViewHolder holder, final int position) {
       final EMUObservation observation = emuObservations.get(position);
       holder.txtThickness.setText(getString(R.string.layer_thickness_desc) + observation.getThickness() + getString(R.string.meters));
       holder.txtName.setText(observation.getEmu().getName().toString());
@@ -163,6 +184,11 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
       int top = observation.getTop();
       holder.txtTop.setText(getString(R.string.below_surface_description) + top + getString(R.string.meters));
       holder.rectangle.setBackgroundColor(Color.parseColor(EmuHelper.getColorForEMUCluster(getActivity().getApplicationContext(),observation.getEmu().getName())));
+      holder.rectangle.setOnClickListener(new View.OnClickListener() {
+        @Override public void onClick(View v) {
+          mCallback.onRectangleTap(position);
+        }
+      });
       holder.bind(observation);
     }
 
@@ -187,7 +213,7 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
       txtName = (TextView) emuView.findViewById(R.id.txtName);
       txtThickness = (TextView) emuView.findViewById(R.id.txt_thickness);
       txtTop = (TextView) emuView.findViewById(R.id.txt_top);
-      rectangle = (ImageView) emuView.findViewById(R.id.emu_shape);
+      rectangle = (ImageView) emuView.findViewById(R.id.emu_rectangle);
 
     }
     public final void bind(final EMUObservation observation){

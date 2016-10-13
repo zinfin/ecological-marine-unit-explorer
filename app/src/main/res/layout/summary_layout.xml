@@ -29,8 +29,9 @@
                           android:layout_weight="0.83"/>
                 <ImageView android:layout_height="match_parent"
                            android:layout_width="40dp"
-                           android:id="@+id/emu_shape"
+                           android:id="@+id/emu_rectangle"
                            android:src="@drawable/rectangle"/>
+
             </LinearLayout>
             <Space
                     android:layout_width="match_parent"
