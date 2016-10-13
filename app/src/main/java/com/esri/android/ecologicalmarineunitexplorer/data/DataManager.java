@@ -27,16 +27,18 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import com.android.annotations.concurrency.Immutable;
 import com.esri.android.ecologicalmarineunitexplorer.R;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
-import com.esri.arcgisruntime.datasource.Feature;
-import com.esri.arcgisruntime.datasource.FeatureQueryResult;
-import com.esri.arcgisruntime.datasource.QueryParameters;
-import com.esri.arcgisruntime.datasource.arcgis.ServiceFeatureTable;
+import com.esri.arcgisruntime.data.Feature;
+import com.esri.arcgisruntime.data.FeatureQueryResult;
+import com.esri.arcgisruntime.data.QueryParameters;
+import com.esri.arcgisruntime.data.ServiceFeatureTable;
 import com.esri.arcgisruntime.geometry.*;
 import com.google.common.base.Function;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimaps;
 
 import java.util.*;
 
@@ -49,15 +51,31 @@ public class DataManager {
 
   private Context mContext;
 
-  public DataManager(Context applicationContext){
+  private static DataManager instance = null;
+
+  private Map<Point, WaterColumn> cache = new HashMap<>();
+
+
+  private DataManager(Context applicationContext){
 
     mContext = applicationContext;
+
     mClusterPolygonTable = new ServiceFeatureTable(mContext.getString(R.string.service_emu_polygon));
 
     mMeshClusterTable = new ServiceFeatureTable(mContext.getString(R.string.service_emu_mesh_cluster));
 
     mMeshPointTable = new ServiceFeatureTable(mContext.getString(R.string.service_emu_point_mesh)
     );
+  }
+  /**
+   * A singleton that provides access to data services
+   * @param applicationContext - Context
+   */
+  public static DataManager getDataManagerInstance(Context applicationContext){
+    if ( instance == null){
+      instance = new DataManager(applicationContext);
+    }
+    return  instance;
   }
 
   /**
@@ -120,6 +138,7 @@ public class DataManager {
             while (pointIterator.hasNext()){
               Point p = pointIterator.next();
               WaterColumn waterColumn = new WaterColumn();
+              waterColumn.setLocation(p);;
               Collection<EMUObservation> observations = map.get(p);
               for (EMUObservation o : observations){
                 waterColumn.addObservation(o);
@@ -135,6 +154,8 @@ public class DataManager {
 
           // Processing is complete, notify the callback
           callback.onWaterColumnsLoaded(closestWaterColumn);
+
+
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -142,6 +163,16 @@ public class DataManager {
     });
   }
 
+  public void addToWaterColumnCache(WaterColumn waterColumn){
+    cache.put(waterColumn.getLocation(), waterColumn);
+  }
+  public WaterColumn getFromWaterColumnCache(Point location){
+    WaterColumn waterColumn = null;
+    if (cache.containsKey(location)){
+      waterColumn = cache.get(location);
+    }
+    return waterColumn;
+  }
   /**
    * Given a Map containing strings as keys and objects as values,
    * create an EMUObservation
@@ -149,8 +180,6 @@ public class DataManager {
    * @return an EMUObservation for map.
    */
   private EMUObservation createEMUObservation(Map<String,Object> map){
-    map.keySet().toString();
-    map.values().toString();
     EMUObservation observation = new EMUObservation();
 
     EMU emu = new EMU();
@@ -194,7 +223,7 @@ public class DataManager {
     // Set the thickness
     observation.setThickness(Integer.parseInt(extractValueFromMap(mContext.getString(R.string.thickness),map)));
 
-    Log.i("Observation", "observation: " + observation.toString());
+   // Log.i("Observation", "observation: " + observation.toString());
     return observation;
   }
 
@@ -231,18 +260,17 @@ public class DataManager {
         WaterColumn waterColumn = waterColumnMap.get(geo);
         Point point = (Point) geo;
         Point waterColumnPoint = new Point(point.getX(), point.getY(), center.getSpatialReference());
-        GeodeticDistanceResult geodeticDistanceResult = GeometryEngine
-            .distanceGeodetic(center, waterColumnPoint, linearUnit, angularUnit, GeodeticCurveType.GEODESIC);
+        GeodeticDistanceResult geodeticDistanceResult = GeometryEngine.distanceGeodetic(center, waterColumnPoint, linearUnit, angularUnit, GeodeticCurveType.GEODESIC);
         double calculatedDistance = geodeticDistanceResult.getDistance();
         waterColumn.setDistanceFrom(calculatedDistance);
         waterColumnList.add(waterColumn);
-        Log.i("DistanceFrom", "Distance = " + calculatedDistance);
+      //  Log.i("DistanceFrom", "Distance = " + calculatedDistance);
       }
       // Sort water columns
       Collections.sort(waterColumnList);
       closestWaterColumn = waterColumnList.get(0);
       WaterColumn furthers = waterColumnList.get(waterColumnList.size()-1);
-      Log.i("Distances", "Closest = " + closestWaterColumn.getDistanceFrom()+ " furthest =" + furthers.getDistanceFrom() );
+     // Log.i("Distances", "Closest = " + closestWaterColumn.getDistanceFrom()+ " furthest =" + furthers.getDistanceFrom() );
     }
 
     return closestWaterColumn;

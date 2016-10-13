@@ -50,5 +50,6 @@
     <string name="layer_thickness_desc">"Layer thickness at this location "</string>
     <string name="meters">" meters"</string>
     <string name="below_surface_description">"Distance below surface "</string>
-    <string name="ocean_summary_location_title">Ocean Summary for Location</string>
+    <string name="ocean_summary_location_title">EMU Summary for Location</string>
+
 </resources>

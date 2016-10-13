@@ -59,6 +59,7 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
 
   private List<EMUObservation> emuObservations = new ArrayList<>();
   private RecyclerView mEmuObsView;
+  private WaterColumn mWaterColumn;
   private EMUAdapter mEmuAdapter;
   private SummaryContract.Presenter mPresenter;
 
@@ -85,18 +86,22 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
     mEmuObsView.setLayoutManager(new LinearLayoutManager(mEmuObsView.getContext() ));
     mEmuObsView.setAdapter(mEmuAdapter);
 
+    // If the view has been re-created, grab the class variable
+    if (emuObservations != null){
+
+    }
+
     return mEmuObsView;
   }
-  @Override
-  public final void onResume(){
-    super.onResume();
-    Log.i("SummaryFragment", "onResume");
-  }
-
-  @Override
-  public final void onPause() {
-    super.onPause();
-    Log.i("SummaryFragment", "onPause");
+  public void onSaveInstanceState (Bundle outState){
+    if (mWaterColumn != null){
+      outState.putDouble("X", mWaterColumn.getLocation().getX());
+      outState.putDouble("Y" , mWaterColumn.getLocation().getY());
+      if (mWaterColumn.getLocation().getSpatialReference() != null){
+        outState.putString("SR", mWaterColumn.getLocation().getSpatialReference().getWKText());
+      }
+      Log.i("SummaryFragment", "Saving instance state");
+    }
   }
   /**
    * Override the application label used for the toolbar title
@@ -112,6 +117,7 @@ public class SummaryFragment extends Fragment implements SummaryContract.View {
    * @param waterColumn - A WaterColumn object containing EMUObservations to display
    */
   @Override public void setWaterColumn(WaterColumn waterColumn) {
+    mWaterColumn = waterColumn;
     Set<EMUObservation> emuSet = waterColumn.getEmuSet();
     emuObservations.clear();
     for (EMUObservation observation : emuSet){

@@ -24,6 +24,7 @@ package com.esri.android.ecologicalmarineunitexplorer.data;
  */
 
 import android.support.annotation.NonNull;
+import com.esri.arcgisruntime.geometry.Point;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -32,6 +33,7 @@ import java.util.TreeSet;
 public class WaterColumn implements  Comparable<WaterColumn> {
   @NonNull private Set<EMUObservation> emuSet;
   private double distanceFrom = 0;
+  private Point location;
 
   public WaterColumn(){
     emuSet = new TreeSet<>();
@@ -84,4 +86,11 @@ public class WaterColumn implements  Comparable<WaterColumn> {
     this.distanceFrom = distanceFrom;
   }
 
+  public Point getLocation() {
+    return location;
+  }
+
+  public void setLocation(Point location) {
+    this.location = location;
+  }
 }

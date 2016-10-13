@@ -13,6 +13,7 @@ import android.test.ActivityInstrumentationTestCase2;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 import com.robotium.solo.Solo;
 import com.esri.android.ecologicalmarineunitexplorer.map.MapActivity;
@@ -141,6 +142,41 @@ public class EMUAppTest extends ActivityInstrumentationTestCase2
     solo.clickOnScreen(973,1300,1);
     boolean messageShows = solo.waitForText(getActivity().getString(R.string.no_emu_found));
     assertTrue(messageShows);
+  }
+
+  /**
+   * Verifty that a recycler view
+   * containing EMU observations is loaded
+   * when a point in the ocean is clicked.
+   */
+  public void testSummaryShown(){
+    solo.clickOnScreen(400,1300,1);
+    boolean emuTextFound = solo.waitForText("EMU ");
+    assertTrue(emuTextFound);
+    boolean buttonFound = solo.searchButton("DETAILS");
+    assertTrue(buttonFound);
+    boolean scrollSuccess = solo.scrollDownRecyclerView(2);
+    assertTrue(scrollSuccess);
+    scrollSuccess = solo.scrollDownRecyclerView(3);
+    assertTrue(scrollSuccess);
+    scrollSuccess = solo.scrollUpRecyclerView(0);
+    assertTrue(scrollSuccess);
+  }
+
+  /**
+   * Verify that buttons in
+   * the water column are displayed
+   */
+  public void testWaterColumnShown(){
+    solo.clickOnScreen(400,1300,1);
+    boolean emuTextFound = solo.waitForText("EMU ");
+    assertTrue(emuTextFound);
+    boolean buttonFound = solo.searchButton("DETAILS");
+    assertTrue(buttonFound);
+    Button button = solo.getButton(0);
+    assertTrue(button != null);
+    button = solo.getButton(1);
+    assertTrue(button != null);
   }
 
   private void requestWritePermission() {

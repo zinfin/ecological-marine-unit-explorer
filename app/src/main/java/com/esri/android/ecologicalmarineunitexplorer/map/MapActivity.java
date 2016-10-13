@@ -25,6 +25,7 @@
 
 package com.esri.android.ecologicalmarineunitexplorer.map;
 
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +34,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.esri.android.ecologicalmarineunitexplorer.R;
+import com.esri.android.ecologicalmarineunitexplorer.data.DataManager;
 import com.esri.android.ecologicalmarineunitexplorer.data.EMUObservation;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.android.ecologicalmarineunitexplorer.summary.SummaryFragment;
@@ -40,32 +42,42 @@ import com.esri.android.ecologicalmarineunitexplorer.summary.SummaryPresenter;
 import com.esri.android.ecologicalmarineunitexplorer.util.ActivityUtils;
 import com.esri.android.ecologicalmarineunitexplorer.watercolumn.WaterColumnFragment;
 
+
 import java.util.Set;
 
-public class MapActivity extends AppCompatActivity {
+public class MapActivity extends AppCompatActivity  {
 
   private MapPresenter mMapPresenter;
   private SummaryPresenter mSummaryPresenter;
+  private DataManager mDataManager;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main_activity);
 
+    // Get data access setup
+    mDataManager = DataManager.getDataManagerInstance(getApplicationContext());
+
     // Set up fragments
     setUpMagFragment();
   }
 
+  @Override
+  public void onBackPressed(){
+      super.onBackPressed();
+  }
   /**
    * Configure the map fragment
    */
   private void setUpMagFragment(){
     final FragmentManager fm = getSupportFragmentManager();
+
     MapFragment mapFragment = (MapFragment) fm.findFragmentById(R.id.map_container);
 
     if (mapFragment == null) {
       mapFragment = MapFragment.newInstance();
-      mMapPresenter = new MapPresenter(mapFragment);
+      mMapPresenter = new MapPresenter(mapFragment, mDataManager);
       ActivityUtils.addFragmentToActivity(
           getSupportFragmentManager(), mapFragment, R.id.map_container, "map fragment");
     }
@@ -85,11 +97,13 @@ public class MapActivity extends AppCompatActivity {
 
     // Adjust the map's layout
     FrameLayout mapLayout = (FrameLayout) findViewById(R.id.map_container);
-    mapLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,700));
+    LinearLayout.LayoutParams  layoutParams  =  new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,700);
+    layoutParams.setMargins(0, 0,36,0);
+    mapLayout.setLayoutParams(layoutParams);
     mapLayout.requestLayout();
 
     FrameLayout summaryLayout = (FrameLayout) findViewById(R.id.summary_container);
-    summaryLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 900));
+    summaryLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,900));
     summaryLayout.requestLayout();
 
     // Replace whatever is in the summary_container view with this fragment,
@@ -111,5 +125,6 @@ public class MapActivity extends AppCompatActivity {
 
 
   }
+
 
 }

@@ -80,7 +80,6 @@ public class WaterColumnFragment extends Fragment {
       }
     }
 
-    Log.i("WaterColumnFragment", "Layout height = " + mRoot.getHeight());
     // Each button will be added to layout with a layout_weight
     // relative to the ratio of the EUMObservation to
     // the depth of the water column
@@ -89,20 +88,17 @@ public class WaterColumnFragment extends Fragment {
     TextView tv = (TextView) mRoot.findViewById(R.id.txtBottom);
     tv.setText(waterColumn.getDepth()+" m");
 
-
+    int buttonId = 0;
     for (EMUObservation observation: emuObservationSet){
       float relativeSize = (observation.getThickness()/depth) * 100;
       Log.i("WaterColumnFragment", "thickness = "+ observation.getThickness()+ " depth= "+ depth+ " relative size " + relativeSize);
       Button button = new Button(getContext());
       LinearLayout.LayoutParams  layoutParams  =  new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,0, relativeSize);
-      float x = getResources().getDimension(R.dimen.button_horizontal_margin);
       button.setLayoutParams(layoutParams);
       button.setBackgroundColor(Color.parseColor(EmuHelper.getColorForEMUCluster(getContext(), observation.getEmu().getName())));
+      button.setId(buttonId);
       mButtonContainer.addView(button);
+      buttonId = buttonId + 1;
     }
-
-
-
-    Log.i("WaterColumnFragment", "Layout height after views added = " + mRoot.getHeight());
   }
 }

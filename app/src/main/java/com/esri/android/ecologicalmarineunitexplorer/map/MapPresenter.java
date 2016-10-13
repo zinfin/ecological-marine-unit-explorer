@@ -26,6 +26,7 @@ package com.esri.android.ecologicalmarineunitexplorer.map;
  */
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import com.esri.android.ecologicalmarineunitexplorer.data.DataManager;
 import com.esri.android.ecologicalmarineunitexplorer.data.ServiceApi;
@@ -41,23 +42,22 @@ public class MapPresenter implements MapContract.Presenter {
   private  MapContract.View mMapView;
   private DataManager mDataManager;
 
-  public MapPresenter(@NonNull final MapContract.View mapView ){
+  public MapPresenter(@NonNull final MapContract.View mapView, @Nullable final DataManager dataManager){
     mMapView = checkNotNull(mapView, "map view cannot be null");
+    mDataManager = checkNotNull(dataManager);
+    mDataManager = dataManager;
     mMapView.setPresenter(this);
 
   }
   @Override public void start() {
-    checkNotNull(mMapView.getContext().getApplicationContext());
-    mDataManager = new DataManager(mMapView.getContext().getApplicationContext());
+    // no op for now
   }
 
   @Override public void setSelectedPoint(Point point) {
     mMapView.showClickedLocation(point);
-    Log.i("MapPresenter", "Selcted point coordinates = x= " + point.getX() + " y= " + point.getY());
     Polygon polygon = getBufferPolygonForPoint(point, 32000);
     PolygonBuilder builder = new PolygonBuilder(polygon);
     Envelope envelope = builder.getExtent();
-   // mMapView.showSelectedRegion(polygon);
     mDataManager.queryForEmuAtLocation(envelope, new ServiceApi.SummaryCallback() {
       @Override public void onWaterColumnsLoaded(WaterColumn column) {
         WaterColumn waterColumn =   column;

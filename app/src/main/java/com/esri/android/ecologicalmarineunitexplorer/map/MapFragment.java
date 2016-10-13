@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,16 +25,22 @@ import com.esri.android.ecologicalmarineunitexplorer.R;
 import com.esri.android.ecologicalmarineunitexplorer.data.WaterColumn;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.Polygon;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.*;
+import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.symbology.LineSymbol;
 import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.List;
 
 /* Copyright 2016 Esri
  *
@@ -68,7 +75,7 @@ public class MapFragment extends Fragment implements MapContract.View {
   private MapContract.Presenter mPresenter;
 
   private Point mSelectedPoint;
-
+  private ArcGISMap mMap;
   public MapFragment(){}
 
   public static MapFragment newInstance(){
@@ -79,6 +86,23 @@ public class MapFragment extends Fragment implements MapContract.View {
   public final void onCreate(@NonNull final Bundle savedInstance) {
 
     super.onCreate(savedInstance);
+
+    if (savedInstance != null)
+    {
+      // Populate data from data manager given the point
+      double x = savedInstance.getDouble("X");
+      double y = savedInstance.getDouble("Y");
+      ;
+      if (savedInstance.containsKey("SR")){
+        String sr = savedInstance.getString("SR");
+        SpatialReference spatialReference = SpatialReference.create(sr);
+        mSelectedPoint = new Point(x,y, spatialReference);
+      }else{
+        mSelectedPoint = new Point(x,y);
+      }
+      Log.i("MapFragment", "Reconstituting instance state in 'onCreate'");
+      showClickedLocation(mSelectedPoint);
+    }
     // retain this fragment
     setRetainInstance(true);
     mPresenter.start();
@@ -94,7 +118,24 @@ public class MapFragment extends Fragment implements MapContract.View {
     setUpMap(root);
 
     setUpToolbar();
+
+    if (mSelectedPoint != null){
+      showClickedLocation(mSelectedPoint);
+      Log.i("MapFragment", "Reconstituting state in 'onCreateView'");
+    }
     return root;
+  }
+
+
+  public void onSaveInstanceState (Bundle outState){
+    if (mSelectedPoint != null){
+      outState.putDouble("X", mSelectedPoint.getX());
+      outState.putDouble("Y" , mSelectedPoint.getY());
+      if (mSelectedPoint.getSpatialReference() != null){
+        outState.putString("SR", mSelectedPoint.getSpatialReference().getWKText());
+      }
+      Log.i("MapFragment", "Saving instance state");
+    }
   }
 
   private final void setUpMap(View root){
@@ -107,9 +148,9 @@ public class MapFragment extends Fragment implements MapContract.View {
 
     // Create a map using Ocean basemap and
     // zoom to Galapagos Islands
-    ArcGISMap map = new ArcGISMap(Basemap.Type.OCEANS,-0.3838312, -91.5727346, 4  );
+    mMap  = new ArcGISMap(Basemap.Type.OCEANS,-0.3838312, -91.5727346, 4  );
 
-    mMapView.setMap(map);
+    mMapView.setMap(mMap);
 
     // Create and add layers that need to be visible in the map
     mGraphicOverlay  = new GraphicsOverlay();
@@ -117,7 +158,7 @@ public class MapFragment extends Fragment implements MapContract.View {
 
     // EMU Ocean Surface
     ArcGISTiledLayer tiledLayerBaseMap = new ArcGISTiledLayer(getString(R.string.emu_ocean_surface_layer));
-    map.getOperationalLayers().add(tiledLayerBaseMap);
+    mMap.getOperationalLayers().add(tiledLayerBaseMap);
 
     final MapTouchListener mapTouchListener = new MapTouchListener(getActivity().getApplicationContext(), mMapView);
 
@@ -139,12 +180,12 @@ public class MapFragment extends Fragment implements MapContract.View {
     mMapView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
       @Override public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop,
           int oldRight, int oldBottom) {
-        Log.i("MapView", "Layout changed");
         if (mSelectedPoint != null){
-          mMapView.setViewpointCenterAsync(mSelectedPoint, 50000000);
+          mMapView.setViewpointCenterAsync(mSelectedPoint, 5000000);
         }
       }
     });
+
   }
 
   /**
@@ -159,20 +200,22 @@ public class MapFragment extends Fragment implements MapContract.View {
   @Override
   public final void onResume(){
     super.onResume();
-    mMapView.resume();
+ //   mMapView.resume();
   }
 
   @Override
   public final void onPause() {
     super.onPause();
-    mMapView.pause();
+  //  mMapView.pause();
   }
   /**
    * Obtain the geo location for a given point
    * on the screen
    */
   public Point getScreenToLocation(android.graphics.Point mapPoint){
+
     return mMapView.screenToLocation(mapPoint);
+
   }
 
   @Override public void setPresenter(MapContract.Presenter presenter) {
@@ -190,6 +233,9 @@ public class MapFragment extends Fragment implements MapContract.View {
 
   }
 
+  /**
+   * Remind the user that EMUs are only found in the ocean
+   */
   @Override public void showDataNotFound() {
     Toast.makeText(getActivity(), R.string.no_emu_found, Toast.LENGTH_SHORT).show();
   }
@@ -198,6 +244,11 @@ public class MapFragment extends Fragment implements MapContract.View {
     ((MapActivity) getActivity()).showSummary(column);
   }
 
+  /**
+   * Create and add a marker to the map representing
+   * the clicked location.
+   * @param point - A com.esri.arcgisruntime.geometry.Point item
+   */
   @Override public void showClickedLocation(Point point) {
     Bitmap icon = BitmapFactory.decodeResource(getActivity().getResources(), R.mipmap.blue_pin);
     BitmapDrawable drawable = new BitmapDrawable(getResources(), icon);
@@ -207,6 +258,8 @@ public class MapFragment extends Fragment implements MapContract.View {
     mGraphicOverlay.getGraphics().add(marker);
 
   }
+
+
 
   public class MapTouchListener extends DefaultMapViewOnTouchListener {
     /**
@@ -222,7 +275,6 @@ public class MapFragment extends Fragment implements MapContract.View {
     }
     @Override
     public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
-      Log.i("ScreenPoints", "x = " + motionEvent.getX() + " y = "+ motionEvent.getY());
       android.graphics.Point mapPoint = new android.graphics.Point((int) motionEvent.getX(),
           (int) motionEvent.getY());
       mSelectedPoint = getScreenToLocation(mapPoint);
